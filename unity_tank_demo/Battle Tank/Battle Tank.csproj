@@ -239,9 +239,12 @@
     <Compile Include="Assets\Detonator Explosion Framework\TestScene\TouchToMouse.cs" />
     <Compile Include="Assets\KY_effects\Script\ConGUI.cs" />
     <Compile Include="Assets\KY_effects\Script\Lighting.cs" />
+    <Compile Include="Assets\Resorces\Scripts\CameraController.cs" />
     <Compile Include="Assets\Resorces\Scripts\Chase.cs" />
+    <Compile Include="Assets\Resorces\Scripts\ChaseCamera.cs" />
     <Compile Include="Assets\Resorces\Scripts\DestroyObject.cs" />
     <Compile Include="Assets\Resorces\Scripts\EnemyShotShell.cs" />
+    <Compile Include="Assets\Resorces\Scripts\GameStart.cs" />
     <Compile Include="Assets\Resorces\Scripts\Radar.cs" />
     <Compile Include="Assets\Resorces\Scripts\ShotShell.cs" />
     <Compile Include="Assets\Resorces\Scripts\TankHealth.cs" />
