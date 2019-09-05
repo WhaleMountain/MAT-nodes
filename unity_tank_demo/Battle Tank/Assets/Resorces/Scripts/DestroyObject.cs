@@ -5,9 +5,6 @@ using UnityEngine;
 public class DestroyObject : MonoBehaviour
 {
     public GameObject effectPrefab;
-
-    // 2種類目のエフェクトを入れるための箱
-    public GameObject effectPrefab2;
     public int objectHP;
     // このメソッドはぶつかった瞬間に呼び出される
     private void OnTriggerEnter(Collider other)
@@ -38,9 +35,8 @@ public class DestroyObject : MonoBehaviour
             { // ★★追加  そうでない場合（HPが0以下になった場合）には（条件）
                 Destroy(other.gameObject);
 
-                // もう１種類のエフェクを発生させる。
-                GameObject effect2 = Instantiate(effectPrefab2, transform.position, Quaternion.identity);
-                Destroy(effect2, 2.0f);
+                GameObject effect = Instantiate(effectPrefab, transform.position, Quaternion.identity);
+                Destroy(effect, 2.0f);
 
                 Destroy(this.gameObject);
             }

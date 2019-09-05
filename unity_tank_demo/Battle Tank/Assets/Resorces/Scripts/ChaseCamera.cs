@@ -9,13 +9,19 @@ public class ChaseCamera : MonoBehaviour
 
     void Start()
     {
-        // カメラとターゲットの最初の位置関係（距離）を取得する。
-        offset = transform.position - target.transform.position;
+
     }
 
     void Update()
     {
-        // 最初に取得した位置関係を足すことで常に一定の距離を維持する（ポイント）
-        transform.position = target.transform.position + offset;
+        if (target != null)
+        {
+            if (offset == null)
+            {
+                offset = transform.position - target.transform.position;
+            }
+            transform.position = target.transform.position + offset;
+        }
+        
     }
 }

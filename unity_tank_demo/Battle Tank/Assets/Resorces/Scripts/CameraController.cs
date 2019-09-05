@@ -11,6 +11,11 @@ public class CameraController : MonoBehaviour
 
     void Start()
     {
+        
+    }
+
+    public void Set()
+    {
         mainCamera.enabled = true;
         subCamera.enabled = false;
     }
