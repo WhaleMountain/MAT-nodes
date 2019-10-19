@@ -50,7 +50,7 @@ namespace MATNet
 
         public MNPlayer player;
 
-        public static string lobbyManagerName = "WebSocketLobbyManager";
+        public static string lobbyManagerName = "FirebaseLobbyManager";
         public static string[] clientMethodNames = { "WebSocketClient" };
         public static string[] serverMethodNames = { "WebSocketServer2" };
 
