@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using MessagePack;
 
 namespace MATNet
 {
-    [MessagePackObject]
+    [MessagePackObject, Serializable, DataContract]
     public class MNRoomData
     {
         public enum Status
@@ -17,26 +18,37 @@ namespace MATNet
             InSession
         }
         [Key(0)]
+        [DataMember(Name = "<status>")]
         public Status status { get; set; }
         [Key(1)]
+        [DataMember(Name = "<hostPlayer>")]
         public MNPlayer hostPlayer { get; set; }
         [Key(2)]
+        [DataMember(Name = "<hostPortNum>")]
         public int hostPortNum { get; set; }
         [Key(3)]
+        [DataMember(Name = "<maxPlayer>")]
         public int maxPlayer { get; set; }
         [Key(4)]
+        [DataMember(Name = "<adminPlayer>")]
         public MNPlayer adminPlayer { get; set; }
         [Key(5)]
+        [DataMember(Name = "<roomID>")]
         public int roomID { get; set; }
         [Key(6)]
+        [DataMember(Name = "<roomName>")]
         public string roomName { get; set; }
         [Key(7)]
+        [DataMember(Name = "<players>")]
         public List<MNPlayer> players { get; set; }
         [Key(8)]
+        [DataMember(Name = "<clientMethod>")]
         public string clientMethod { get; set; }
         [Key(9)]
+        [DataMember(Name = "<serverMethod>")]
         public string serverMethod { get; set; }
         [Key(10)]
+        [DataMember(Name = "<additionalDatas>")]
         public Dictionary<string, object> additionalDatas { get; set; }
     }
 
