@@ -33,8 +33,8 @@ namespace MATNodes.Plugins
 
             Task.Run(async () =>
             {
-                await reference.Child("Rooms").Child(NextRoomID.ToString()).SetValueAsync(roomData); // Firebase にデータを投げる。
-                //await reference.Child("Rooms").Child(NextRoomID.ToString()).SetRawJsonValueAsync(roomData); // Jsonの時
+                //await reference.Child("Rooms").Child(NextRoomID.ToString()).SetValueAsync(roomData); // objectの時
+                await reference.Child("Rooms").Child(NextRoomID.ToString()).SetRawJsonValueAsync(roomData); // stringの時
             });
 
             AllroomData.Add(NextRoomID, roomData);
@@ -45,7 +45,8 @@ namespace MATNodes.Plugins
         {
             Task.Run(async () =>
             {
-                await reference.Child("Rooms").Child(roomId.ToString()).SetRawJsonValueAsync(null);
+                //await reference.Child("Rooms").Child(roomId.ToString()).SetValueAsync(null); // objectの時
+                await reference.Child("Rooms").Child(roomId.ToString()).SetRawJsonValueAsync(null); // stringの時
             });
 
             AllroomData.Remove(roomId);
@@ -76,8 +77,8 @@ namespace MATNodes.Plugins
         {
             Task.Run(async () =>
             {
-                await reference.Child("Rooms").Child(roomId.ToString()).SetValueAsync(roomData); // Firebase にデータを投げる。
-                //await reference.Child("Rooms").Child(roomId.ToString()).SetRawJsonValueAsync(roomData); // Jsonの時
+                //await reference.Child("Rooms").Child(roomId.ToString()).SetValueAsync(roomData); // objectの時
+                await reference.Child("Rooms").Child(roomId.ToString()).SetRawJsonValueAsync(roomData); // stringの時
             });
 
             AllroomData[roomId] = roomData;
@@ -89,15 +90,15 @@ namespace MATNodes.Plugins
             reference.Child("Rooms").ValueChanged += HandleValueChanged;
         }
 
-        public  static void HandleValueChanged(object sender, ValueChangedEventArgs args) // 変更があったら実行される。 今は動かない
+        public  static void HandleValueChanged(object sender, ValueChangedEventArgs args) // 変更があったら実行される。
         {
             if (args.DatabaseError != null)
             {
                 MNTools.DebugLog(args.DatabaseError.Message);
                 return;
             }
-            string roomDataJson = args.Snapshot.GetValue(); // ここのデータがどうなるか
-            //string roomDataJson = args.Snapshot.GetRawJsonValue(); // Jsonの時
+            string changeRoomData = args.Snapshot.GetRawJsonValue();
+            AllroomData = changeRoomData; // 多分全てのデータが帰ってくるはず
         }
     }
 }
