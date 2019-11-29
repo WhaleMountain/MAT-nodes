@@ -17,14 +17,11 @@ namespace MATNodes
         }
         public MNPlayer GetHost()
         {
-            if (hostPlayer == null)
-            {
-                Run();
-            }
             return hostPlayer;
         }
         public void Run()
         {
+            hostPlayer = null;
             foreach (MNPlayer player in players)
             {
                 if (player.canHost)

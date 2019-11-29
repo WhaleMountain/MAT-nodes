@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Firebase;
 using Firebase.Database;
 using Firebase.Unity.Editor;
-using Newtonsoft.Json;
 
 namespace MATNodes.Plugins
 {
@@ -20,7 +19,8 @@ namespace MATNodes.Plugins
         {
             const string url = "https://DB-URL";
             FirebaseApp.DefaultInstance.SetEditorDatabaseUrl(url);
-            reference = FirebaseDatabase.DefaultInstance.RootReference;
+            //reference = FirebaseApp.DefaultInstance.RootReference;
+            reference = null;
             CheckDatabase();
         }
 
@@ -33,8 +33,8 @@ namespace MATNodes.Plugins
 
             Task.Run(async () =>
             {
-                //await reference.Child("Rooms").Child(NextRoomID.ToString()).SetValueAsync(roomData); // objectの時
-                await reference.Child("Rooms").Child(NextRoomID.ToString()).SetRawJsonValueAsync(roomData); // stringの時
+                await reference.Child("Rooms").Child(NextRoomID.ToString()).SetValueAsync(roomData); // Firebase にデータを投げる。
+                //await reference.Child("Rooms").Child(NextRoomID.ToString()).SetRawJsonValueAsync(roomData); // Jsonの時
             });
 
             AllroomData.Add(NextRoomID, roomData);
@@ -45,8 +45,7 @@ namespace MATNodes.Plugins
         {
             Task.Run(async () =>
             {
-                //await reference.Child("Rooms").Child(roomId.ToString()).SetValueAsync(null); // objectの時
-                await reference.Child("Rooms").Child(roomId.ToString()).SetRawJsonValueAsync(null); // stringの時
+                await reference.Child("Rooms").Child(roomId.ToString()).SetRawJsonValueAsync(null);
             });
 
             AllroomData.Remove(roomId);
@@ -70,15 +69,15 @@ namespace MATNodes.Plugins
 
         public void OnDestroy()
         {
-            throw new System.NotImplementedException();
+            
         }
 
         public bool SetRoomData(int roomId, string roomData)
         {
             Task.Run(async () =>
             {
-                //await reference.Child("Rooms").Child(roomId.ToString()).SetValueAsync(roomData); // objectの時
-                await reference.Child("Rooms").Child(roomId.ToString()).SetRawJsonValueAsync(roomData); // stringの時
+                await reference.Child("Rooms").Child(roomId.ToString()).SetValueAsync(roomData); // Firebase にデータを投げる。
+                //await reference.Child("Rooms").Child(roomId.ToString()).SetRawJsonValueAsync(roomData); // Jsonの時
             });
 
             AllroomData[roomId] = roomData;
@@ -90,15 +89,14 @@ namespace MATNodes.Plugins
             reference.Child("Rooms").ValueChanged += HandleValueChanged;
         }
 
-        public  static void HandleValueChanged(object sender, ValueChangedEventArgs args) // 変更があったら実行される。
+        public  static void HandleValueChanged(object sender, ValueChangedEventArgs args) // 変更があったら実行される。 今は動かない
         {
             if (args.DatabaseError != null)
             {
-                MNTools.DebugLog(args.DatabaseError.Message);
                 return;
             }
-            string changeRoomData = args.Snapshot.GetRawJsonValue();
-            AllroomData = changeRoomData; // 多分全てのデータが帰ってくるはず
+            //string roomDataJson = args.Snapshot.GetValue(); // ここのデータがどうなるか
+            //string roomDataJson = args.Snapshot.GetRawJsonValue(); // Jsonの時
         }
     }
 }

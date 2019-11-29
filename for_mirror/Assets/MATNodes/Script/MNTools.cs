@@ -18,7 +18,7 @@ namespace MATNodes
 
         public static object GetInstance(string className)
         {
-            Type type = Type.GetType("MATNet.Plugins." + className);
+            Type type = Type.GetType("MATNodes.Plugins." + className);
             object obj = Activator.CreateInstance(type);
             return obj;
         }

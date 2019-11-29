@@ -21,7 +21,7 @@ namespace MATNodes
             uuid = Guid.NewGuid().ToString();
             lanAddress = MNTools.localAddress.ToString();
             wanAddress = MNTools.globalAddress.ToString();
-
+            canHost = MNListServer.Instance.EnabledUpnp;
         }
 
         public override bool Equals(object obj)
