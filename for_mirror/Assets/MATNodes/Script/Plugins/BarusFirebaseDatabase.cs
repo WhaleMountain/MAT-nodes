@@ -30,6 +30,7 @@ namespace MATNodes.Plugins
             client = new FireSharp.Core.FirebaseClient(config);
             ListenStream();
             roomDatas = new Dictionary<int, string>();
+            RefleshDatas();
         }
 
         async void ListenStream()
@@ -46,6 +47,7 @@ namespace MATNodes.Plugins
                 {
                     roomDatas.Add(id, args.Data);
                 }
+                MNListServer.Instance.Log("listenstream: changed "+id);
                 OnRoomDataChangedEvent(id);
             });
         }
@@ -60,6 +62,26 @@ namespace MATNodes.Plugins
         async void DeleteData(int roomId)
         {
             await client.DeleteAsync("rooms/" + roomId);
+        }
+        async void RefleshDatas()
+        {
+            FirebaseResponse response = await client.GetAsync("rooms/");
+            List<RoomData> datas = response.ResultAs<List<RoomData>>();
+            Dictionary<int, string> temp = new Dictionary<int, string>(roomDatas);
+            List<int> changedId = new List<int>();
+            roomDatas.Clear();
+            for (int i = 0; i < datas.Count; i++)
+            {
+                if (temp.ContainsKey(i) && temp[i] != datas[i].data)
+                {
+                    changedId.Add(i);
+                }
+                roomDatas.Add(i, datas[i].data);
+            }
+            foreach (int i in changedId)
+            {
+                OnRoomDataChangedEvent(i);
+            }
         }
 
         public int CreateRoom(string roomData)
@@ -77,12 +99,14 @@ namespace MATNodes.Plugins
 
         public string GetRoomData(int roomId)
         {
+            RefleshDatas();
             if (!roomDatas.ContainsKey(roomId)) return "";
             return roomDatas[roomId];
         }
 
         public Dictionary<int, string> GetRoomList()
         {
+            RefleshDatas();
             return roomDatas;
         }
 

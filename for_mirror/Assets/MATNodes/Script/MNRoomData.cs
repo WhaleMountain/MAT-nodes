@@ -12,28 +12,31 @@ namespace MATNodes
     [Serializable]
     public class MNRoomData
     {
-        public enum Status
+        public enum RoomStatus
         {
             WaitingPlayer,
+            DeterminingHost,
             Connecting,
             InSession
         }
-        public Status status { get; set; }
-        public MNPlayer hostPlayer { get; set; }
-        public MNPlayer adminPlayer { get; set; }
-        public string roomName { get; set; }
-        public int capacity { get; set; }
-        public List<MNPlayer> players { get; set; }
+        public RoomStatus Status { get; set; }
+        public MNPlayer HostPlayer { get; set; }
+        public MNPlayer AdminPlayer { get; set; }
+        public string RoomName { get; set; }
+        public int Capacity { get; set; }
+        public List<MNPlayer> Players { get; set; }
+        public List<MNPlayer> JoinRequests { get; set; }
 
         public MNRoomData(string roomName, MNPlayer adminPlayer, int capacity)
         {
-            status = Status.WaitingPlayer;
-            hostPlayer = null;
-            this.adminPlayer = adminPlayer;
-            this.roomName = roomName;
-            this.capacity = capacity;
-            players = new List<MNPlayer>();
-            players.Add(adminPlayer);
+            Status = RoomStatus.WaitingPlayer;
+            HostPlayer = null;
+            this.AdminPlayer = adminPlayer;
+            this.RoomName = roomName;
+            this.Capacity = capacity;
+            Players = new List<MNPlayer>();
+            Players.Add(adminPlayer);
+            JoinRequests = new List<MNPlayer>();
         }
 
         public static MNRoomData FromJson(string json)

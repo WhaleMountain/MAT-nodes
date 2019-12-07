@@ -21,6 +21,7 @@ public class SimpleGUI : MonoBehaviour
 
     public string playerName = "";
     private string playerNameTemp = "Player";
+    private bool debugMode;
 
     // Use this for initialization
     void Start()
@@ -63,10 +64,12 @@ public class SimpleGUI : MonoBehaviour
     {
         GUI.Label(new Rect(20, 20, 300, 60), "Enter your name");
         playerNameTemp = GUI.TextField(new Rect(20, 80, 250, 40), playerNameTemp);
-        if (GUI.Button(new Rect(80, 130, 100, 30), "Enter"))
+        debugMode = GUI.Toggle(new Rect(20, 130, 200, 50), debugMode, "debug mode");
+        if (GUI.Button(new Rect(140, 130, 100, 30), "Enter"))
         {
             playerName = playerNameTemp;
             MNListServer.Instance.Player = new MNPlayer(playerName);
+            if (debugMode) MNListServer.Instance.Player.canHost = true;//for debug
         }
     }
 
@@ -90,12 +93,16 @@ public class SimpleGUI : MonoBehaviour
     void DrawJoiningRoomStatus()
     {
         GUI.Label(new Rect(20, 20, 300, 200), "You are joining room. ");
-        if (MNListServer.Instance.JoiningRoomData.status == MNRoomData.Status.WaitingPlayer)
+        if (MNListServer.Instance.JoiningRoomData.Status == MNRoomData.RoomStatus.WaitingPlayer)
         {
             if (GUI.Button(new Rect(20, 70, 150, 30), "Start Session"))
             {
                 MNListServer.Instance.StartSession();
             }
+        }
+        if (GUI.Button(new Rect(20, 120, 150, 30), "reflesh"))
+        {
+            RefleshRoomList();
         }
     }
 
@@ -107,7 +114,7 @@ public class SimpleGUI : MonoBehaviour
         foreach (KeyValuePair<int, MNRoomData> kvp in dataDict)
         {
             temp.Add(new RoomDataWithId { id = kvp.Key, data = kvp.Value });
-            stringsTemp.Add(kvp.Value.roomName);
+            stringsTemp.Add(kvp.Value.RoomName);
         }
         roomDataWithIds = temp.ToArray();
         roomSelStrings = stringsTemp.ToArray();

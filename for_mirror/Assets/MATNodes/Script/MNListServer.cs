@@ -85,6 +85,12 @@ namespace MATNodes
             Player = new MNPlayer("Player");
         }
 
+        //for debug
+        public void Log(string text)
+        {
+            Debug.Log(text);
+        }
+
         private void NatUtility_DeviceLost(object sender, DeviceEventArgs e)
         {
             natDevice = null;
@@ -127,26 +133,69 @@ namespace MATNodes
             string temp = database.GetRoomData(roomId);
             Debug.Log("datachanged:\n" + temp);
             MNRoomData roomData = MNRoomData.FromJson(temp);
-            if (roomData.status == MNRoomData.Status.Connecting)
+            if (roomData.Status == MNRoomData.RoomStatus.Connecting)
             {
-                if (roomData.hostPlayer.Equals(Player))
+                if (roomData.HostPlayer.Equals(Player))
                 {
                     OpenPort();
                     StartHost();
-                    roomData.status = MNRoomData.Status.InSession;
+                    roomData.Status = MNRoomData.RoomStatus.InSession;
                     database.SetRoomData(joiningRoomId, MNRoomData.ToJson(roomData));
                 }
             }
-            if (JoiningRoomData.status == MNRoomData.Status.Connecting && roomData.status == MNRoomData.Status.InSession)
+            if (OnRoom && JoiningRoomData.Status == MNRoomData.RoomStatus.Connecting && roomData.Status == MNRoomData.RoomStatus.InSession)
             {
-                if (!roomData.hostPlayer.Equals(Player))
+                if (!roomData.HostPlayer.Equals(Player))
                 {
-                    StartClient(GetProperAddress(roomData.hostPlayer));
+                    StartClient(GetProperAddress(roomData.HostPlayer));
                 }
             }
-            if (roomData.status == MNRoomData.Status.InSession && !OnRunningClient())
+            if (OnRoom && roomData.Status == MNRoomData.RoomStatus.InSession && !OnRunningClient())
             {
-                StartClient(GetProperAddress(roomData.hostPlayer));
+                StartClient(GetProperAddress(roomData.HostPlayer));
+            }
+            //入室が承認された場合
+            if (!OnRoom && roomData.Players.Contains(Player))
+            {
+                OnRoom = true;
+                Debug.Log("入室が承認されました。");
+            }
+            //自分がadminPlayerの場合にやること
+            if (roomData.AdminPlayer.Equals(Player))
+            {
+                //入室の承認
+                if (roomData.JoinRequests.Count > 0)
+                {
+                    foreach (MNPlayer player in roomData.JoinRequests)
+                    {
+                        if (roomData.Capacity >= roomData.Players.Count)
+                        {
+                            roomData.Players.Add(player);
+                        }
+                    }
+                    roomData.JoinRequests.Clear();
+                    database.SetRoomData(roomId, MNRoomData.ToJson(roomData));
+                }
+                //セッションを開始する
+                if (roomData.Status == MNRoomData.RoomStatus.DeterminingHost)
+                {
+                    Debug.Log("ホスト決定を開始");
+                    HostDeterminer determiner = new HostDeterminer(roomData.Players);
+                    determiner.Run();
+                    if (determiner.GetHost() == null)
+                    {
+                        Debug.Log("ホスト可能なプレイヤーが存在しません！");
+                        roomData.Status = MNRoomData.RoomStatus.WaitingPlayer;
+                        database.SetRoomData(roomId, MNRoomData.ToJson(roomData));
+                    }
+                    else
+                    {
+                        roomData.HostPlayer = determiner.GetHost();
+                        roomData.Status = MNRoomData.RoomStatus.Connecting;
+                        database.SetRoomData(roomId, MNRoomData.ToJson(roomData));
+                        Debug.Log("Start Session!");
+                    }
+                }
             }
             JoiningRoomData = roomData;
         }
@@ -157,12 +206,13 @@ namespace MATNodes
 
         }
 
-        string GetProperAddress(MNPlayer hostPlayer)
+        public string GetProperAddress(MNPlayer hostPlayer)
         {
             if (hostPlayer.Equals(Player))
             {
                 return "127.0.0.1";
-            }else if (hostPlayer.wanAddress == Player.wanAddress)
+            }
+            else if (hostPlayer.wanAddress == Player.wanAddress)
             {
                 return hostPlayer.lanAddress;
             }
@@ -180,17 +230,18 @@ namespace MATNodes
                 return;
             }
             MNRoomData roomData = MNRoomData.FromJson(database.GetRoomData(roomId));
-            if (roomData.capacity != -1 && roomData.capacity <= roomData.players.Count)
+            if (roomData.Capacity != -1 && roomData.Capacity <= roomData.Players.Count)
             {
                 Debug.Log("部屋が満員です！");
                 return;
             }
-            roomData.players.Add(Player);
+            roomData.JoinRequests.Add(Player);
+            //roomData.players.Add(Player);
             if (database.SetRoomData(roomId, MNRoomData.ToJson(roomData)))
             {
                 joiningRoomId = roomId;
                 JoiningRoomData = roomData;
-                OnRoom = true;
+                //OnRoom = true;
             }
             else
             {
@@ -215,8 +266,8 @@ namespace MATNodes
 
         public void LeaveRoom()
         {
-            if (joiningRoomId == -1) return;
-            if (JoiningRoomData.players.Count <= 1)
+            if (joiningRoomId == -1 || !OnRoom) return;
+            if (JoiningRoomData.Players.Count <= 1)
             {
                 if (database.DeleteRoom(joiningRoomId))
                 {
@@ -225,14 +276,14 @@ namespace MATNodes
                 }
                 return;
             }
-            JoiningRoomData.players.Remove(Player);
-            if (JoiningRoomData.adminPlayer.Equals(Player))
+            JoiningRoomData.Players.Remove(Player);
+            if (JoiningRoomData.AdminPlayer.Equals(Player))
             {
-                JoiningRoomData.adminPlayer = JoiningRoomData.players[0];
+                JoiningRoomData.AdminPlayer = JoiningRoomData.Players[0];
             }
-            if (JoiningRoomData.hostPlayer.Equals(Player))
+            if (JoiningRoomData.HostPlayer != null && JoiningRoomData.HostPlayer.Equals(Player))
             {
-                //いろいろやる
+                //ホストが落ちる場合
             }
             database.SetRoomData(joiningRoomId, MNRoomData.ToJson(JoiningRoomData));
             OnRoom = false;
@@ -240,24 +291,9 @@ namespace MATNodes
 
         public void StartSession()
         {
-            if (!JoiningRoomData.adminPlayer.Equals(Player))
-            {
-                //確定された仕様ではなく、簡単に作るための仮置き
-                //send request?
-                Debug.Log("部屋主でないためセッションをスタートできません");
-                return;
-            }
-            HostDeterminer determiner = new HostDeterminer(JoiningRoomData.players);
-            determiner.Run();
-            if (determiner.GetHost() == null)
-            {
-                Debug.Log("ホスト可能なプレイヤーが存在しません！");
-                return;
-            }
-            JoiningRoomData.hostPlayer = determiner.GetHost();
-            JoiningRoomData.status = MNRoomData.Status.Connecting;
+            JoiningRoomData.Status = MNRoomData.RoomStatus.DeterminingHost;
             database.SetRoomData(joiningRoomId, MNRoomData.ToJson(JoiningRoomData));
-            Debug.Log("Start Session!");
+            Debug.Log("send request that start session.");
         }
 
         public Dictionary<int, MNRoomData> GetRoomList()
