@@ -37,15 +37,20 @@ namespace MATNodes
         private INatDevice natDevice;
         public bool EnabledUpnp { get; set; }
 
+        //メインスレッドからしか呼び出せないため
+        private bool startHostOnNextFrame;
+        private bool startClientOnNextFrame;
+
         //Mirrorを呼び出すコードのラッパー
         void StartClient(string ip)
         {
             NetworkManager.singleton.networkAddress = ip;
-            NetworkManager.singleton.StartClient();
+            startClientOnNextFrame = true;
+            //NetworkManager.singleton.StartClient();
         }
         void StartHost()
         {
-            NetworkManager.singleton.StartHost();
+            startHostOnNextFrame = true;
         }
         public bool OnRunningClient()
         {
@@ -83,6 +88,21 @@ namespace MATNodes
             database = (MNIDatabase)MNTools.GetInstance(databaseName);
             database.OnRoomDataChangedEvent += Database_OnRoomDataChangedEvent;
             Player = new MNPlayer("Player");
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            if (startHostOnNextFrame)
+            {
+                startHostOnNextFrame = false;
+                NetworkManager.singleton.StartHost();
+            }
+            if (startClientOnNextFrame)
+            {
+                startClientOnNextFrame = false;
+                NetworkManager.singleton.StartClient();
+            }
         }
 
         //for debug
@@ -137,22 +157,19 @@ namespace MATNodes
             {
                 if (roomData.HostPlayer.Equals(Player))
                 {
+                    Debug.Log("Starting host..");
                     OpenPort();
                     StartHost();
                     roomData.Status = MNRoomData.RoomStatus.InSession;
                     database.SetRoomData(joiningRoomId, MNRoomData.ToJson(roomData));
                 }
             }
-            if (OnRoom && JoiningRoomData.Status == MNRoomData.RoomStatus.Connecting && roomData.Status == MNRoomData.RoomStatus.InSession)
+            if (OnRoom && roomData.Status == MNRoomData.RoomStatus.InSession && !OnRunningClient())
             {
                 if (!roomData.HostPlayer.Equals(Player))
                 {
                     StartClient(GetProperAddress(roomData.HostPlayer));
                 }
-            }
-            if (OnRoom && roomData.Status == MNRoomData.RoomStatus.InSession && !OnRunningClient())
-            {
-                StartClient(GetProperAddress(roomData.HostPlayer));
             }
             //入室が承認された場合
             if (!OnRoom && roomData.Players.Contains(Player))
@@ -200,12 +217,6 @@ namespace MATNodes
             JoiningRoomData = roomData;
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
         public string GetProperAddress(MNPlayer hostPlayer)
         {
             if (hostPlayer.Equals(Player))
@@ -236,12 +247,10 @@ namespace MATNodes
                 return;
             }
             roomData.JoinRequests.Add(Player);
-            //roomData.players.Add(Player);
             if (database.SetRoomData(roomId, MNRoomData.ToJson(roomData)))
             {
                 joiningRoomId = roomId;
                 JoiningRoomData = roomData;
-                //OnRoom = true;
             }
             else
             {

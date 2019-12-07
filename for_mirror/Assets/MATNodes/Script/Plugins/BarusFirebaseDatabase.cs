@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FireSharp.Core.Interfaces;
 using FireSharp.Core.Response;
+using System.Timers;
 
 namespace MATNodes.Plugins
 {
@@ -14,6 +15,7 @@ namespace MATNodes.Plugins
 
         private IFirebaseClient client;
         private Dictionary<int, string> roomDatas;
+        private Timer timer;
 
         class RoomData
         {
@@ -22,6 +24,10 @@ namespace MATNodes.Plugins
 
         public BarusFirebaseDatabase()
         {
+            roomDatas = new Dictionary<int, string>();
+            timer = new Timer(2000);
+            timer.Elapsed += Timer_Elapsed;
+
             var config = new FireSharp.Core.Config.FirebaseConfig
             {
                 AuthSecret = "9dZg3lsWe9BYGfbAcOXt5Y2Ll7fkVHVZhmj5TGPc",
@@ -29,7 +35,13 @@ namespace MATNodes.Plugins
             };
             client = new FireSharp.Core.FirebaseClient(config);
             ListenStream();
-            roomDatas = new Dictionary<int, string>();
+            RefleshDatas();
+
+            timer.Start();
+        }
+
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
             RefleshDatas();
         }
 
@@ -66,10 +78,13 @@ namespace MATNodes.Plugins
         async void RefleshDatas()
         {
             FirebaseResponse response = await client.GetAsync("rooms/");
+            //MNListServer.Instance.Log("body: " + response.Body);
+            if (response.Body == null || response.Body == "") return;
             List<RoomData> datas = response.ResultAs<List<RoomData>>();
             Dictionary<int, string> temp = new Dictionary<int, string>(roomDatas);
             List<int> changedId = new List<int>();
             roomDatas.Clear();
+            if (datas == null || datas.Count <= 0) return;
             for (int i = 0; i < datas.Count; i++)
             {
                 if (temp.ContainsKey(i) && temp[i] != datas[i].data)
