@@ -85,7 +85,8 @@ namespace MATNodes
             NatUtility.DeviceLost += NatUtility_DeviceLost;
             natDevice = null;
             NatUtility.StartDiscovery();
-            database = (MNIDatabase)MNTools.GetInstance(databaseName);
+            //database = (MNIDatabase)MNTools.GetInstance(databaseName);
+            database = PluginManager.GetAvailableDatabase();
             database.OnRoomDataChangedEvent += Database_OnRoomDataChangedEvent;
             Player = new MNPlayer("Player");
         }
