@@ -16,13 +16,6 @@ namespace MATNodes
         static IPAddress mGlobalAddress;
         static List<IPAddress> mAddresses = null;
 
-        public static object GetInstance(string className)
-        {
-            Type type = Type.GetType("MATNodes.Plugins." + className);
-            object obj = Activator.CreateInstance(type);
-            return obj;
-        }
-
         static public string GetResponse(WebRequest request)
         {
             string response = "";
@@ -207,7 +200,7 @@ namespace MATNodes
                 {
                     try
                     {
-                        mGlobalAddress = GetGlobalAddress("http://api.ipify.org");//(string)MNConfigManager.GetNode("MNTools")["globalAddressSourceUrl"] こんな風にコンフィグから読む予定
+                        mGlobalAddress = GetGlobalAddress("http://api.ipify.org");
                     }
                     catch (Exception) { }
                 }

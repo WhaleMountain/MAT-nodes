@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MATNodes
 {
@@ -89,7 +85,9 @@ namespace MATNodes
     {
         public static MNIDatabase GetAvailableDatabase()
         {
-            PluginInfo[] pluginInfos = PluginInfo.FindPlugins(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)+"\\plugins");
+            //System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + 
+            string path = "Plugins";
+            PluginInfo[] pluginInfos = PluginInfo.FindPlugins(path);
             foreach (var info in pluginInfos)
             {
                 MNIDatabase instance = info.CreateInstance();
