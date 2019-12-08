@@ -21,8 +21,6 @@ namespace MATNodes
 
         //Unityから設定する項目
         [SerializeField]
-        string databaseName = "BarusFirebaseDatabase";
-        [SerializeField]
         Protocol serverProtocol;
         [SerializeField]
         int serverPort;
