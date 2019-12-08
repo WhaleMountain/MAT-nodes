@@ -2485,7 +2485,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d47cedfa0cb817f439f440a489afa17d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  databaseName: BarusFirebaseDatabase
   serverProtocol: 0
   serverPort: 7777
 --- !u!114 &1282001520

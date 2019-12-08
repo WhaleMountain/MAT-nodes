@@ -12,8 +12,10 @@ public class SimpleGUI : MonoBehaviour
     }
 
     public bool enable { get; set; }
+    private bool roomCreateWindow;
 
     private Rect windowRect = new Rect(20, 20, 350, 300);
+    private Rect rcwRect;
 
     private RoomDataWithId[] roomDataWithIds;
     private string[] roomSelStrings = new string[0];
@@ -21,12 +23,14 @@ public class SimpleGUI : MonoBehaviour
 
     public string playerName = "";
     private string playerNameTemp = "Player";
+    private string roomNameTemp = "Room";
     private bool debugMode;
 
     // Use this for initialization
     void Start()
     {
         enable = true;
+        rcwRect = new Rect(Screen.width / 2 - 100, Screen.height / 2 - 50, 200, 100);
     }
 
     // Update is called once per frame
@@ -40,6 +44,10 @@ public class SimpleGUI : MonoBehaviour
         if (enable)
         {
             windowRect = GUI.Window(0, windowRect, RoomSelectionWindow, "Simple Lobby");
+            if (roomCreateWindow)
+            {
+                rcwRect = GUI.ModalWindow(1, rcwRect, CreateRoomWindow, "Create Room");
+            }
         }
     }
 
@@ -51,7 +59,6 @@ public class SimpleGUI : MonoBehaviour
         }
         else if (MNListServer.Instance.OnRoom)
         {
-            //Debug.Log(MNListServer.Instance.joiningRoomData.roomName);
             DrawJoiningRoomStatus();
         }
         else
@@ -60,11 +67,23 @@ public class SimpleGUI : MonoBehaviour
         }
     }
 
+    void CreateRoomWindow(int windowId)
+    {
+        GUILayout.Label("Enter room name.");
+        roomNameTemp = GUILayout.TextField(roomNameTemp);
+        if (GUILayout.Button("Create"))
+        {
+            roomCreateWindow = false;
+            CreateRoom(roomNameTemp);
+            roomNameTemp = "Room";
+        }
+    }
+
     void DrawEnterPlayerInfo()
     {
         GUI.Label(new Rect(20, 20, 300, 60), "Enter your name");
         playerNameTemp = GUI.TextField(new Rect(20, 80, 250, 40), playerNameTemp);
-        debugMode = GUI.Toggle(new Rect(20, 130, 200, 50), debugMode, "debug mode");
+        debugMode = GUI.Toggle(new Rect(20, 250, 200, 50), debugMode, "debug mode");
         if (GUI.Button(new Rect(140, 130, 100, 30), "Enter"))
         {
             playerName = playerNameTemp;
@@ -81,7 +100,7 @@ public class SimpleGUI : MonoBehaviour
         }
         if (GUI.Button(new Rect(120, 20, 100, 30), "Create"))
         {
-            CreateRoom("Room1");
+            roomCreateWindow = true;
         }
         if (GUI.Button(new Rect(240, 20, 100, 30), "Reflesh"))
         {
@@ -95,14 +114,16 @@ public class SimpleGUI : MonoBehaviour
         GUI.Label(new Rect(20, 20, 300, 200), "You are joining room. ");
         if (MNListServer.Instance.JoiningRoomData.Status == MNRoomData.RoomStatus.WaitingPlayer)
         {
-            if (GUI.Button(new Rect(20, 70, 150, 30), "Start Session"))
+            string members = "Members:\n";
+            foreach (MNPlayer player in MNListServer.Instance.JoiningRoomData.Players)
+            {
+                members += player.displayName + "\n";
+            }
+            GUI.TextArea(new Rect(20, 40, 300, 200), members);
+            if (GUI.Button(new Rect(20, 250, 150, 30), "Start Session"))
             {
                 MNListServer.Instance.StartSession();
             }
-        }
-        if (GUI.Button(new Rect(20, 120, 150, 30), "reflesh"))
-        {
-            RefleshRoomList();
         }
     }
 
